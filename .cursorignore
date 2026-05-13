@@ -1,0 +1,11 @@
+# Cursor/AI Ignore File
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+node_modules/
+dist/
+build/
+.git/

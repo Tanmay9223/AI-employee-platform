@@ -1,0 +1,20 @@
+[
+  {
+    "sourceId": "order_1001",
+    "orderNumber": "#1001",
+    "status": "paid",
+    "currency": "USD",
+    "subtotalAmount": 142.00,
+    "discountAmount": 0,
+    "taxAmount": 12.78,
+    "totalAmount": 154.78,
+    "refundedAmount": 0,
+    "itemCount": 2,
+    "orderedAt": "2024-09-15T10:23:00Z",
+    "customerId": "customer_001",
+    "items": [
+      { "sku": "HOODIE-BLK-L", "quantity": 1, "price": 89.00 },
+      { "sku": "TEE-WHT-M", "quantity": 1, "price": 53.00 }
+    ]
+  }
+]

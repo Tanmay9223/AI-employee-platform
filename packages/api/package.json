@@ -1,0 +1,21 @@
+{
+  "name": "@ai-employee-platform/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev --respawn --watch src/ src/index.ts"
+  },
+  "dependencies": {
+    "@ai-employee-platform/db": "workspace:*",
+    "@fastify/cors": "^9.0.1",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^5.10.2",
+    "dotenv": "^17.4.2",
+    "fastify": "^4.26.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Merchant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+
+  user               User?
+  connectorInstances ConnectorInstance[]
+  orders             UnifiedOrder[]
+  customers          UnifiedCustomer[]
+  campaigns          UnifiedCampaign[]
+  inventory          UnifiedInventory[]
+  recommendations    AgentRecommendation[]
+  auditLogs          AuditLog[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  merchantId   String   @unique
+  createdAt    DateTime @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+}
+
+model ConnectorInstance {
+  id            String    @id @default(uuid())
+  merchantId    String
+  connectorType String // 'shopify', 'meta_ads', 'klaviyo'
+  status        String    @default("active")
+  lastSyncedAt  DateTime?
+  syncCursor    Json?
+  config        Json?
+  createdAt     DateTime  @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+
+  @@unique([merchantId, connectorType])
+}
+
+model UnifiedOrder {
+  id               String   @id @default(uuid())
+  merchantId       String
+  sourceId         String
+  sourceConnector  String
+  sourceSyncedAt   DateTime
+  connectorVersion String   @default("1.0.0")
+
+  orderNumber    String?
+  status         String?
+  currency       String  @default("USD")
+  subtotalAmount Decimal @db.Decimal(15, 4)
+  discountAmount Decimal @default(0) @db.Decimal(15, 4)
+  taxAmount      Decimal @default(0) @db.Decimal(15, 4)
+  totalAmount    Decimal @db.Decimal(15, 4)
+  refundedAmount Decimal @default(0) @db.Decimal(15, 4)
+  itemCount      Int     @default(1)
+
+  orderedAt   DateTime?
+  fulfilledAt DateTime?
+  cancelledAt DateTime?
+
+  rawPayload Json?
+  checksum   String?
+  createdAt  DateTime @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+
+  @@unique([merchantId, sourceConnector, sourceId])
+  @@index([merchantId, orderedAt(sort: Desc)])
+}
+
+model UnifiedCustomer {
+  id              String   @id @default(uuid())
+  merchantId      String
+  sourceId        String
+  sourceConnector String
+  sourceSyncedAt  DateTime
+
+  emailHash     String?
+  firstName     String?
+  lastName      String?
+  orderCount    Int       @default(0)
+  totalSpent    Decimal   @default(0) @db.Decimal(15, 4)
+  avgOrderValue Decimal?  @db.Decimal(15, 4)
+  firstOrderAt  DateTime?
+  lastOrderAt   DateTime?
+  tags          String[]
+
+  rawPayload Json?
+  checksum   String?
+  createdAt  DateTime @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+
+  @@unique([merchantId, sourceConnector, sourceId])
+}
+
+model UnifiedCampaign {
+  id              String   @id @default(uuid())
+  merchantId      String
+  sourceId        String
+  sourceConnector String // 'meta_ads', 'klaviyo'
+  sourceSyncedAt  DateTime
+
+  name    String?
+  type    String? // 'paid_social', 'email', 'sms'
+  status  String?
+  channel String? // 'facebook', 'instagram', 'email'
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  spendAmount     Decimal? @db.Decimal(15, 4)
+  impressions     BigInt?
+  clicks          BigInt?
+  conversions     Int?
+  conversionValue Decimal? @db.Decimal(15, 4)
+  roas            Decimal? @db.Decimal(8, 4)
+
+  sends             Int?
+  opens             Int?
+  revenueAttributed Decimal? @db.Decimal(15, 4)
+
+  rawPayload Json?
+  checksum   String?
+  createdAt  DateTime @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+
+  @@unique([merchantId, sourceConnector, sourceId, periodStart])
+}
+
+model UnifiedInventory {
+  id              String   @id @default(uuid())
+  merchantId      String
+  sourceId        String
+  sourceConnector String
+  sourceSyncedAt  DateTime
+
+  productId         String?
+  variantId         String?
+  sku               String?
+  productName       String?
+  variantName       String?
+  quantityAvailable Int      @default(0)
+  quantityCommitted Int      @default(0)
+  quantityIncoming  Int      @default(0)
+  unitCost          Decimal? @db.Decimal(15, 4)
+  unitPrice         Decimal? @db.Decimal(15, 4)
+
+  rawPayload Json?
+  createdAt  DateTime @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+
+  @@unique([merchantId, sourceConnector, sourceId])
+}
+
+model AgentRecommendation {
+  id         String   @id @default(uuid())
+  merchantId String
+  agentRunId String
+  createdAt  DateTime @default(now())
+
+  sku               String?
+  productName       String?
+  riskLevel         String // 'CRITICAL', 'HIGH', 'MEDIUM'
+  recommendedAction String
+  reorderQuantity   Int?
+  daysToDepletion   Float?
+  revenueAtRisk     Decimal? @db.Decimal(15, 4)
+  confidenceScore   Float?
+  reasoningSummary  String?
+  citations         Json?
+
+  status     String    @default("pending") // 'pending', 'approved', 'dismissed', 'snoozed'
+  reviewedAt DateTime?
+  reviewedBy String?
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  merchantId   String?
+  actorId      String?
+  actorType    String? // 'user', 'agent', 'connector'
+  action       String
+  resourceType String?
+  resourceId   String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  merchant Merchant? @relation(fields: [merchantId], references: [id])
+}
+
+model AgentRunLog {
+  id            String    @id @default(uuid())
+  merchantId    String
+  agent         String
+  triggeredBy   String
+  startedAt     DateTime
+  completedAt   DateTime?
+  durationMs    Int?
+  status        String // 'success', 'failed', 'partial'
+  nodesExecuted Json?
+  llmCalls      Json?
+  errors        Json?
+  createdAt     DateTime  @default(now())
+}

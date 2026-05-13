@@ -1,0 +1,9 @@
+[
+  { "sourceId": "inv_001", "sku": "HOODIE-BLK-L", "productName": "Classic Hoodie", "variantName": "Black / L", "quantityAvailable": 89, "quantityCommitted": 12, "unitCost": 28.00, "unitPrice": 89.00 },
+  { "sourceId": "inv_002", "sku": "HOODIE-BLK-M", "productName": "Classic Hoodie", "variantName": "Black / M", "quantityAvailable": 234, "quantityCommitted": 18, "unitCost": 28.00, "unitPrice": 89.00 },
+  { "sourceId": "inv_003", "sku": "TEE-WHT-M", "productName": "Essential Tee", "variantName": "White / M", "quantityAvailable": 412, "quantityCommitted": 32, "unitCost": 12.00, "unitPrice": 45.00 },
+  { "sourceId": "inv_004", "sku": "CAP-BLK-OS", "productName": "Logo Cap", "variantName": "Black / OS", "quantityAvailable": 23, "quantityCommitted": 8, "unitCost": 8.00, "unitPrice": 35.00 },
+  { "sourceId": "inv_005", "sku": "JOGGER-GRY-L", "productName": "Comfort Jogger", "variantName": "Grey / L", "quantityAvailable": 18, "quantityCommitted": 6, "unitCost": 22.00, "unitPrice": 75.00 },
+  { "sourceId": "inv_006", "sku": "HOODIE-NVY-S", "productName": "Classic Hoodie", "variantName": "Navy / S", "quantityAvailable": 7, "quantityCommitted": 4, "unitCost": 28.00, "unitPrice": 89.00 },
+  { "sourceId": "inv_007", "sku": "TEE-BLK-L", "productName": "Essential Tee", "variantName": "Black / L", "quantityAvailable": 189, "quantityCommitted": 14, "unitCost": 12.00, "unitPrice": 45.00 }
+]

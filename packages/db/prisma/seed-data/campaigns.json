@@ -1,0 +1,47 @@
+[
+  {
+    "sourceId": "campaign_meta_001",
+    "connector": "meta_ads",
+    "name": "Black Friday Sale 2024",
+    "type": "paid_social",
+    "channel": "facebook",
+    "status": "completed",
+    "periodStart": "2024-11-25",
+    "periodEnd": "2024-11-30",
+    "spendAmount": 4200.00,
+    "impressions": 284000,
+    "clicks": 8420,
+    "conversions": 210,
+    "conversionValue": 18900.00,
+    "roas": 4.5
+  },
+  {
+    "sourceId": "campaign_meta_002",
+    "connector": "meta_ads",
+    "name": "Winter Collection Launch",
+    "type": "paid_social",
+    "channel": "instagram",
+    "status": "active",
+    "periodStart": "2024-12-01",
+    "periodEnd": "2024-12-31",
+    "spendAmount": 1800.00,
+    "impressions": 142000,
+    "clicks": 3200,
+    "conversions": 64,
+    "conversionValue": 5760.00,
+    "roas": 3.2
+  },
+  {
+    "sourceId": "campaign_klaviyo_001",
+    "connector": "klaviyo",
+    "name": "November Win-Back Flow",
+    "type": "email",
+    "channel": "email",
+    "status": "active",
+    "periodStart": "2024-11-01",
+    "periodEnd": "2024-11-30",
+    "sends": 4200,
+    "opens": 1092,
+    "revenueAttributed": 8400.00
+  }
+]

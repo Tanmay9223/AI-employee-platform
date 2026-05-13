@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ai_employee_db #if changed db name in .env the restart db and run docker-compose up
+      POSTGRES_USER: postgres #if changed db user in .env the restart db and run docker-compose up
+      POSTGRES_PASSWORD: password #if changed db password in .env the restart db and run docker-compose up
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+
+volumes:
+  postgres_data:

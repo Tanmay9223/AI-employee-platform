@@ -1,0 +1,27 @@
+{
+  "name": "ai-employee-platform",
+  "packageManager": "pnpm@11.1.1",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "db:migrate": "pnpm --filter @ai-employee-platform/db exec prisma migrate dev --schema prisma/schema.prisma",
+    "db:seed": "pnpm --filter @ai-employee-platform/db exec prisma db seed --schema prisma/schema.prisma"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "devDependencies": {
+    "turbo": "^2.9.12"
+  }
+}

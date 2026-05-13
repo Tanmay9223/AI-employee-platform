@@ -1,0 +1,20 @@
+# Antigravity (AI) Ignore File
+# This file prevents the AI agent from reading sensitive or unnecessary files.
+
+# Environment and Credentials
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+secret.txt
+
+# Large/Auto-generated directories (to save context)
+node_modules/
+dist/
+build/
+.git/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
