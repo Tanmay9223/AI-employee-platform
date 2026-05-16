@@ -198,58 +198,6 @@ Each chat message makes 2-3 Gemini API calls (classify → summarize → generat
               │           PostgreSQL (primary)                   │
               │  + Read Replicas for analytics queries           │
               └─────────────────────────────────────────────────┘
-```
-
-## Scaling Strategy
-
-### Current state: works for 1 merchant
-- Single Fastify process, single Python process, single PostgreSQL instance
-- Agent runs sequentially across all merchants on a 6-hour interval with 10-minute jitter
-- In-memory rate limiter (with Redis fallback) on auth endpoints
-
-### What breaks first at 10,000 merchants
-
-**1. Agent scheduler (breaks at ~50 merchants)**
-The current `run_all_merchants()` runs agents sequentially in a single loop. At 50 merchants, one 6-hour window would be consumed by sequential runs. At 10,000, it's impossible.
-
-**Mitigation:** Replace APScheduler with a job queue (Celery + Redis, or BullMQ on the Node side). Each merchant becomes an independent task. Workers pull tasks from the queue. Scale workers horizontally.
-
-**2. Internal signals API (breaks at ~500 merchants with large catalogs)**
-`GET /api/internal/signals/:merchantId` fetches entire inventory + campaigns into Node.js memory for each agent run. At 10,000 SKUs per merchant × 500 concurrent runs, this causes OOM.
-
-**Mitigation:** Paginate signals. Stream inventory to the agent in chunks. For the agent's depletion calculation, only load inventory with `quantityAvailable < 100` (candidates for depletion).
-
-**3. PostgreSQL single instance (breaks at ~1,000 merchants, high write volume)**
-10,000 merchants × multiple connector syncs per day = high write volume to shared tables. Row-level locking on `@@unique` upserts can cause contention.
-
-**Mitigation:** Shard by `merchantId` range (tenant-based sharding). Use read replicas for all analytics queries (chat tools, dashboard). Use connection pooling (PgBouncer).
-
-**4. Chat LLM latency (user-facing)**
-Each chat message makes 2-3 Gemini API calls (classify → summarize → generate). At 10,000 concurrent users, this is 30,000 API calls/minute.
-
-**Mitigation:** Cache intent classification for identical messages (Redis, 60s TTL). Cache tool results by `(merchantId, toolName, params hash)` with a 5-minute TTL. Use streaming for generation to reduce perceived latency.
-
-### Architecture at scale
-
-```
-                     ┌─────────────────────────────────────────┐
-                     │           Load Balancer                  │
-                     └──────────┬──────────┬───────────────────┘
-                                │          │
-                     ┌──────────▼──┐  ┌────▼──────────┐
-                     │ Fastify API │  │  Fastify API  │  (N replicas)
-                     │  (stateless)│  │  (stateless)  │
-                     └──────────┬──┘  └────┬──────────┘
-                                │          │
-              ┌─────────────────▼──────────▼───────────────────┐
-              │                  Redis                          │
-              │  (session cache | rate limits | job queue)      │
-              └──────────┬──────────────────────────────────────┘
-                         │
-              ┌──────────▼──────────────────────────────────────┐
-              │           PostgreSQL (primary)                   │
-              │  + Read Replicas for analytics queries           │
-              └─────────────────────────────────────────────────┘
                          │
               ┌──────────▼──────────────────────────────────────┐
               │        Agent Worker Pool (Python/Celery)         │
@@ -279,6 +227,24 @@ Each chat message makes 2-3 Gemini API calls (classify → summarize → generat
 - Conversation history is included in prompts but Gemini context window is not explicitly managed for very long conversations
 - The `checksum` field exists on the schema but is not yet computed in the seeder (planned for idempotent re-sync)
 - No end-to-end tests exist — the system was validated manually during development
+
+---
+
+## AI Tools Usage
+
+I used AI tools heavily as a pair-programmer to speed up development.
+
+**What I designed and drove:**
+- The overall system architecture and multi-tenant security model.
+- The database schema rules (financial precision, provenance).
+- The LangGraph agent workflow and citation enforcement logic.
+- Identifying and fixing scalability bottlenecks.
+
+**What the AI wrote for me:**
+- The repetitive UI boilerplate (Tailwind classes, Next.js page scaffolding).
+- Basic API route setup in Fastify.
+- Generating the dummy JSON seed data.
+- Formatting the Mermaid diagrams and sections in this README based on my notes.
 
 ---
 
