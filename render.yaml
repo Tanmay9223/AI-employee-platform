@@ -20,7 +20,7 @@ services:
     env: node
     plan: free
     buildCommand: pnpm install && pnpm --filter @ai-employee-platform/db exec prisma generate && pnpm build && pnpm --filter @ai-employee-platform/db exec prisma db push
-    startCommand: pnpm --filter @ai-employee-platform/api run start
+    startCommand: pnpm --filter @ai-employee-platform/db exec prisma generate && pnpm --filter @ai-employee-platform/api run start
     healthCheckPath: /health
     envVars:
       - fromGroup: ai-employee-shared
