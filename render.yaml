@@ -29,7 +29,7 @@ services:
           name: ai-employee-db
           property: connectionString
       - key: NODE_VERSION
-        value: 20
+        value: 22.13.1
       - key: PNPM_VERSION
         value: 11.1.1
       - key: API_PORT
@@ -56,7 +56,7 @@ services:
       - key: AGENT_SERVICE_URL
         value: http://ai-employee-agent:10000
       - key: NODE_VERSION
-        value: 20
+        value: 22.13.1
       - key: PNPM_VERSION
         value: 11.1.1
       - key: PORT
