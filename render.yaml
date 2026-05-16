@@ -54,7 +54,7 @@ services:
           name: ai-employee-db
           property: connectionString
       - key: NEXT_PUBLIC_API_URL
-        value: https://ai-employee-api.onrender.com
+        value: https://ai-employee-api-ieun.onrender.com
       - key: AGENT_SERVICE_URL
         value: http://ai-employee-agent:10000
       - key: NODE_VERSION
