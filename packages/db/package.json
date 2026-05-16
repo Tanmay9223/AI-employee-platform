@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "echo 'db package ready'"
+    "dev": "echo 'db package ready'",
+    "build": "prisma generate"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",

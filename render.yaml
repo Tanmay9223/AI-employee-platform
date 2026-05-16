@@ -1,0 +1,79 @@
+databases:
+  # 1. Database (PostgreSQL)
+  - name: ai-employee-db
+    databaseName: ai_employee
+    user: ai_employee_user
+    plan: free
+
+envVarGroups:
+  - name: ai-employee-shared
+    envVars:
+      - key: INTERNAL_SECRET
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+
+services:
+  # 2. Backend API (Fastify)
+  - type: web
+    name: ai-employee-api
+    env: node
+    plan: free
+    buildCommand: pnpm install && pnpm build && pnpm --filter @ai-employee-platform/db exec prisma db push
+    startCommand: pnpm --filter @ai-employee-platform/api run start
+    healthCheckPath: /health
+    envVars:
+      - fromGroup: ai-employee-shared
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-employee-db
+          property: connectionString
+      - key: NODE_VERSION
+        value: 20
+      - key: PNPM_VERSION
+        value: 11.1.1
+      - key: API_PORT
+        value: 3001
+      - key: GOOGLE_GEMINI_API_KEY
+        sync: false # User must provide this in Render dashboard
+
+  # 3. Web Frontend (Next.js)
+  - type: web
+    name: ai-employee-web
+    env: node
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm --filter web run start
+    healthCheckPath: /
+    envVars:
+      - fromGroup: ai-employee-shared
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-employee-db
+          property: connectionString
+      - key: NEXT_PUBLIC_API_URL
+        value: https://ai-employee-api.onrender.com
+      - key: AGENT_SERVICE_URL
+        value: http://ai-employee-agent:10000
+      - key: NODE_VERSION
+        value: 20
+      - key: PNPM_VERSION
+        value: 11.1.1
+      - key: PORT
+        value: 3000
+
+  # 4. AI Agent (Python FastAPI)
+  - type: web
+    name: ai-employee-agent
+    env: python
+    plan: free
+    rootDir: apps/agent
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - fromGroup: ai-employee-shared
+      - key: API_URL
+        value: http://ai-employee-api:3001/api/internal
+      - key: GOOGLE_GENAI_API_KEY
+        sync: false # User must provide this in Render dashboard
