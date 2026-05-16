@@ -68,11 +68,13 @@ services:
     env: python
     plan: free
     rootDir: apps/agent
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - fromGroup: ai-employee-shared
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: API_URL
         value: http://ai-employee-api:3001/api/internal
       - key: GOOGLE_GENAI_API_KEY
