@@ -42,3 +42,9 @@ venv/
 env/
 .venv/
 .env/
+
+# Prisma generated client (regenerated during build, platform-specific binaries)
+packages/db/src/generated/
+
+# Turborepo cache
+.turbo/
