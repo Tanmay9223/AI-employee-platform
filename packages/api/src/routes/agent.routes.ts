@@ -29,7 +29,7 @@ export async function agentRoutes(fastify: FastifyInstance) {
       orderBy: { createdAt: 'desc' }
     })
 
-    return recs.map(r => ({
+    return recs.map((r: typeof recs[number]) => ({
       ...r,
       daysToDepletion: r.daysToDepletion != null ? Number(r.daysToDepletion) : null,
       confidenceScore: r.confidenceScore != null ? Number(r.confidenceScore) : null,

@@ -56,7 +56,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
     }
 
     return {
-      data: orders.map(o => ({
+      data: orders.map((o: typeof orders[number]) => ({
         ...o,
         totalAmount: o.totalAmount != null ? Number(o.totalAmount) : null,
         subtotalAmount: o.subtotalAmount != null ? Number(o.subtotalAmount) : null,
@@ -87,7 +87,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
     }
 
     return {
-      data: campaigns.map(c => ({
+      data: campaigns.map((c: typeof campaigns[number]) => ({
         ...c,
         impressions: c.impressions != null ? Number(c.impressions) : null,
         clicks: c.clicks != null ? Number(c.clicks) : null,
@@ -121,7 +121,7 @@ export async function dataRoutes(fastify: FastifyInstance) {
     }
 
     return {
-      data: inventory.map(inv => ({
+      data: inventory.map((inv: typeof inventory[number]) => ({
         ...inv,
         unitPrice: inv.unitPrice != null ? Number(inv.unitPrice) : null,
         citationRef: `shopify:unified_inventory:${inv.sourceId}`,

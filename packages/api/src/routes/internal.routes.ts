@@ -59,7 +59,7 @@ export async function internalRoutes(fastify: FastifyInstance) {
     })
 
     // Serialize BigInt fields (impressions, clicks) to Number for JSON compatibility
-    const serializedCampaigns = activeCampaigns.map(c => ({
+    const serializedCampaigns = activeCampaigns.map((c: typeof activeCampaigns[number]) => ({
       ...c,
       impressions: c.impressions != null ? Number(c.impressions) : null,
       clicks: c.clicks != null ? Number(c.clicks) : null,
