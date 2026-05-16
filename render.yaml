@@ -36,6 +36,8 @@ services:
         value: 3001
       - key: GOOGLE_GEMINI_API_KEY
         sync: false # User must provide this in Render dashboard
+      - key: CORS_ORIGIN
+        value: https://ai-employee-web.onrender.com
 
   # 3. Web Frontend (Next.js)
   - type: web
@@ -61,6 +63,10 @@ services:
         value: 11.1.1
       - key: PORT
         value: 3000
+      - key: REGISTRATION_CODE
+        sync: false # Set a strong secret in the Render dashboard — required to register new accounts
+      - key: REDIS_URL
+        sync: false # Optional: provide a Redis URL for rate limiting. Leave blank to skip.
 
   # 4. AI Agent (Python FastAPI)
   - type: web
