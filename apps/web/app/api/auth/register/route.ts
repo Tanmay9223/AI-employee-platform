@@ -15,10 +15,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 })
     }
 
-    const { email, password, code, companyName } = await req.json()
+    const { email: rawEmail, password, code, companyName } = await req.json()
 
-    if (!email || !password || !code || !companyName) {
+    if (!rawEmail || !password || !code || !companyName) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
+    }
+
+    const email = rawEmail.toLowerCase().trim()
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
+    }
+
+    // Password strength check (min 8 chars)
+    if (password.length < 8) {
+      return NextResponse.json({ error: 'Password must be at least 8 characters long' }, { status: 400 })
     }
 
     if (code !== SHARED_REGISTRATION_CODE) {

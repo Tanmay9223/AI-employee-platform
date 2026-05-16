@@ -24,9 +24,9 @@ A multi-tenant SaaS dashboard for D2C (Direct-to-Consumer) brands that:
 - **ORM:** Prisma
 
 ### AI Layer
-- **Primary LLM:** Google Gemini 3 Flash (via API key)
+- **Primary LLM:** Google Gemini 3.1 flash (via API key)
 - **Agent Framework:** LangGraph (Python microservice)
-- **Pattern:** Gemini 3 Flash handles intent classification, summarization, and final cited answer
+- **Pattern:** Gemini 3.1 flash handles intent classification, summarization, and final cited answer
 
 ### Frontend
 - **Framework:** Next.js 14 (App Router)
@@ -117,10 +117,10 @@ PostgreSQL Unified Tables (normalized)
 
 | Task | Model | Why |
 |------|-------|-----|
-| Classify user intent | Gemini 3 Flash | Fast, accurate routing |
-| Summarize raw DB results | Gemini 3 Flash | Reduces context window for final answer |
-| Generate final cited answer | Gemini 3 Flash | Accurate, reliable citations |
-| Agent reasoning | Gemini 3 Flash | Needs accuracy for recommendations |
+| Classify user intent | Gemini 3.1 flash | Fast, accurate routing |
+| Summarize raw DB results | Gemini 3.1 flash | Reduces context window for final answer |
+| Generate final cited answer | Gemini 3.1 flash | Accurate, reliable citations |
+| Agent reasoning | Gemini 3.1 flash | Needs accuracy for recommendations |
 
 ---
 

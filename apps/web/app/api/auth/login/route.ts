@@ -13,11 +13,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 })
     }
 
-    const { email, password } = await req.json()
+    const { email: rawEmail, password } = await req.json()
 
-    if (!email || !password) {
+    if (!rawEmail || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
+
+    const email = rawEmail.toLowerCase().trim()
 
     const user = await db.user.findUnique({
       where: { email },

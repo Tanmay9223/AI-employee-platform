@@ -51,6 +51,17 @@ export async function handleChatMessage(
     toolsUsed.push('compute_metric')
   }
 
+  if (intent.intent === 'update_recommendation') {
+    if (intent.recommendationId && intent.recommendationStatus) {
+      const result = await chatTools.update_recommendation(merchantId, {
+        recommendationId: intent.recommendationId,
+        status: intent.recommendationStatus as 'approved' | 'dismissed' | 'snoozed'
+      })
+      toolResults.push(result)
+      toolsUsed.push('update_recommendation')
+    }
+  }
+
   // Step 3: Summarize tool results
   let contextSummary = ''
   const citationsUsed: string[] = []
@@ -72,27 +83,39 @@ Output only the bullet point summary, nothing else.`
     contextSummary = await llm.summarize(summarizePrompt)
   }
 
-  // Step 4: Generate final answer (Gemini)
+  // Step 4: Build conversation context from history (last 6 turns)
+  const recentHistory = conversationHistory.slice(-6)
+  const historyContext = recentHistory.length > 0
+    ? '\n\nConversation so far:\n' + recentHistory
+        .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+        .join('\n')
+    : ''
+
+  // Step 5: Generate final answer (Gemini)
   const generatePrompt = buildGenerationPrompt(
     userMessage,
     contextSummary,
     citationsUsed,
-    toolResults.length === 0
+    toolResults.length === 0,
+    false,
+    historyContext
   )
 
   let response = await llm.generate(generatePrompt)
 
-  // Step 5: Validate citations
+  // Step 6: Validate citations
   const validation = validateCitations(response, citationsUsed)
 
   if (!validation.valid) {
     console.warn('[Chat] Citation validation failed, retrying with stronger grounding...')
-    const retryPrompt = buildGenerationPrompt(userMessage, contextSummary, citationsUsed, false, true)
+    const retryPrompt = buildGenerationPrompt(
+      userMessage, contextSummary, citationsUsed, false, true, historyContext
+    )
     response = await llm.generate(retryPrompt)
 
     const retryValidation = validateCitations(response, citationsUsed)
     if (!retryValidation.valid) {
-      // Safe fallback
+      // Safe deterministic fallback — guaranteed to be cited
       response = buildFallbackResponse(toolResults)
     }
   }
@@ -105,11 +128,12 @@ function buildGenerationPrompt(
   contextSummary: string,
   citations: string[],
   noData: boolean,
-  isRetry = false
+  isRetry = false,
+  historyContext = ''
 ): string {
   if (noData) {
-    return `You are an AI business analyst assistant. The user asked: "${userMessage}"
-    
+    return `You are an AI business analyst assistant. The user asked: "${userMessage}"${historyContext}
+
 I don't have specific data to answer this question. Politely explain what data you'd need and suggest they ask about revenue, campaigns, inventory, or metrics like CAC or ROAS.`
   }
 
@@ -126,8 +150,8 @@ STRICT RULES:
 4. Be conversational but precise
 5. If data is limited, say so honestly
 ${retryWarning}
-
 User Question: "${userMessage}"
+${historyContext}
 
 Business Data Summary:
 ${contextSummary}
@@ -140,16 +164,16 @@ Write a helpful, cited response (2-4 sentences max):`
 
 function buildFallbackResponse(toolResults: any[]): string {
   if (toolResults.length === 0) return "I couldn't find relevant data to answer your question."
-  
+
   const data = toolResults[0].data
-  
+  const citation = toolResults[0].citationRef
+
   let friendlyText = `Here's a summary of the data I found:\n\n`
   for (const [key, value] of Object.entries(data)) {
+    if (typeof value === 'object') continue
     const friendlyKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
-    friendlyText += `- **${friendlyKey}**: ${value}\n`
+    friendlyText += `- **${friendlyKey}**: ${value} [Source: ${citation}]\n`
   }
-  
-  friendlyText += `\n*Citation: ${toolResults[0].citationRef}*`
-  
+
   return friendlyText
 }

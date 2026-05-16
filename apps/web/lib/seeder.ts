@@ -3,17 +3,39 @@ import ordersData from '../../../packages/db/prisma/seed-data/orders.json'
 import campaignsData from '../../../packages/db/prisma/seed-data/campaigns.json'
 import inventoryData from '../../../packages/db/prisma/seed-data/inventory.json'
 
-export async function seedConnectorData(merchantId: string, connectorType: string) {
+export async function seedConnectorData(merchantId: string, connectorType: string, options?: { historicalDays?: number, startDate?: Date, endDate?: Date }) {
   console.log(`Seeding mock data for connector ${connectorType} and merchant ${merchantId}...`)
 
   if (connectorType === 'shopify') {
-    // Seed orders (generate 200 from template to be faster)
-    const orderRecords = generateOrders(merchantId, 200)
-    await prisma.unifiedOrder.createMany({
-      data: orderRecords,
-      skipDuplicates: true
-    })
-    console.log(`[${merchantId}] Seeded orders`)
+    // Determine the date range
+    let start = options?.startDate || new Date()
+    let end = options?.endDate || new Date()
+    if (options?.historicalDays) {
+      start.setDate(end.getDate() - options.historicalDays)
+    } else if (!options?.startDate) {
+      start.setDate(end.getDate() - 180) // Default to 180 days if not specified
+    }
+
+    // Seed orders in chunks to mock chunking architecture
+    // We generate a proportional number of orders to the days requested
+    const daysDiff = Math.max(1, Math.floor((end.getTime() - start.getTime()) / (1000 * 3600 * 24)))
+    const totalOrders = Math.min(200, daysDiff * 5) // Mock 5 orders per day, max 200 for demo
+
+    const CHUNK_SIZE = 50
+    let processed = 0
+
+    while (processed < totalOrders) {
+      const chunkSize = Math.min(CHUNK_SIZE, totalOrders - processed)
+      const chunkRecords = generateOrders(merchantId, chunkSize, start, end)
+      
+      await prisma.unifiedOrder.createMany({
+        data: chunkRecords,
+        skipDuplicates: true
+      })
+      processed += chunkSize
+      console.log(`[${merchantId}] Chunked orders: ${processed}/${totalOrders}`)
+    }
+    console.log(`[${merchantId}] Seeded orders successfully`)
 
     // Seed inventory
     await prisma.unifiedInventory.createMany({
@@ -63,14 +85,15 @@ export async function seedConnectorData(merchantId: string, connectorType: strin
   }
 }
 
-function generateOrders(merchantId: string, count: number) {
+function generateOrders(merchantId: string, count: number, start: Date, end: Date) {
   const skus = ['HOODIE-BLK-L', 'HOODIE-BLK-M', 'TEE-WHT-M', 'CAP-BLK-OS', 'JOGGER-GRY-L', 'TEE-BLK-L']
   const statuses = ['paid', 'paid', 'paid', 'fulfilled', 'fulfilled', 'refunded']
   
   return Array.from({ length: count }, (_, i) => {
     const total = Math.floor(Math.random() * 780 + 20)
-    const orderedAt = new Date()
-    orderedAt.setDate(orderedAt.getDate() - Math.floor(Math.random() * 180))
+    
+    // Generate random date between start and end
+    const orderedAt = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
     
     return {
       merchantId,

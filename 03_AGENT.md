@@ -175,7 +175,7 @@ from api_client import save_recommendation, save_run_log
 import json
 
 genai.configure(api_key=os.getenv("GOOGLE_GEMINI_API_KEY"))
-gemini = genai.GenerativeModel('gemini-3-flash')
+gemini = genai.GenerativeModel('gemini-3.1-flash-lite')
 
 # ─── State Definition ────────────────────────────────────────────────
 

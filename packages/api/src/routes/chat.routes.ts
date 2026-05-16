@@ -22,7 +22,7 @@ export async function chatRoutes(fastify: FastifyInstance) {
         metadata: {
           toolsUsed: result.toolsUsed,
           citationsCount: result.citationsUsed.length,
-          model: 'gemini-3-flash',
+          model: 'gemini-3.1-flash-lite',
           timestamp: new Date().toISOString()
         }
       }

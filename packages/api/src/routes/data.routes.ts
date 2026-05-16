@@ -36,43 +36,100 @@ export async function dataRoutes(fastify: FastifyInstance) {
     }
   })
 
+  // Get orders
+  fastify.get('/orders/:merchantId', async (req, reply) => {
+    const { merchantId } = req.params as { merchantId: string }
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string }
+    const take = parseInt(limit)
+
+    const orders = await prisma.unifiedOrder.findMany({
+      where: { merchantId },
+      orderBy: { orderedAt: 'desc' },
+      take: take + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {})
+    })
+
+    let nextCursor: string | undefined = undefined
+    if (orders.length > take) {
+      const nextItem = orders.pop()
+      nextCursor = nextItem?.id
+    }
+
+    return {
+      data: orders.map(o => ({
+        ...o,
+        totalAmount: o.totalAmount != null ? Number(o.totalAmount) : null,
+        subtotalAmount: o.subtotalAmount != null ? Number(o.subtotalAmount) : null,
+        taxAmount: o.taxAmount != null ? Number(o.taxAmount) : null,
+        citationRef: `shopify:unified_orders:${o.sourceId}`
+      })),
+      nextCursor
+    }
+  })
+
   // Get campaigns
   fastify.get('/campaigns/:merchantId', async (req, reply) => {
     const { merchantId } = req.params as { merchantId: string }
-    
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string }
+    const take = parseInt(limit)
+
     const campaigns = await prisma.unifiedCampaign.findMany({
       where: { merchantId },
-      orderBy: { periodStart: 'desc' }
+      orderBy: { periodStart: 'desc' },
+      take: take + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {})
     })
 
-    return campaigns.map(c => ({
-      ...c,
-      impressions: c.impressions != null ? Number(c.impressions) : null,
-      clicks: c.clicks != null ? Number(c.clicks) : null,
-      spendAmount: c.spendAmount != null ? Number(c.spendAmount) : null,
-      conversionValue: c.conversionValue != null ? Number(c.conversionValue) : null,
-      roas: c.roas != null ? Number(c.roas) : null,
-      revenueAttributed: c.revenueAttributed != null ? Number(c.revenueAttributed) : null,
-      citationRef: `${c.sourceConnector}:unified_campaigns:${c.sourceId}`
-    }))
+    let nextCursor: string | undefined = undefined
+    if (campaigns.length > take) {
+      const nextItem = campaigns.pop()
+      nextCursor = nextItem?.id
+    }
+
+    return {
+      data: campaigns.map(c => ({
+        ...c,
+        impressions: c.impressions != null ? Number(c.impressions) : null,
+        clicks: c.clicks != null ? Number(c.clicks) : null,
+        spendAmount: c.spendAmount != null ? Number(c.spendAmount) : null,
+        conversionValue: c.conversionValue != null ? Number(c.conversionValue) : null,
+        roas: c.roas != null ? Number(c.roas) : null,
+        revenueAttributed: c.revenueAttributed != null ? Number(c.revenueAttributed) : null,
+        citationRef: `${c.sourceConnector}:unified_campaigns:${c.sourceId}`
+      })),
+      nextCursor
+    }
   })
 
   // Get inventory
   fastify.get('/inventory/:merchantId', async (req, reply) => {
     const { merchantId } = req.params as { merchantId: string }
-    
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string }
+    const take = parseInt(limit)
+
     const inventory = await prisma.unifiedInventory.findMany({
       where: { merchantId },
-      orderBy: { quantityAvailable: 'asc' }
+      orderBy: { quantityAvailable: 'asc' },
+      take: take + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {})
     })
 
-    return inventory.map(inv => ({
-      ...inv,
-      unitPrice: inv.unitPrice != null ? Number(inv.unitPrice) : null,
-      citationRef: `shopify:unified_inventory:${inv.sourceId}`,
-      isLowStock: inv.quantityAvailable < 50,
-      isCritical: inv.quantityAvailable < 10
-    }))
+    let nextCursor: string | undefined = undefined
+    if (inventory.length > take) {
+      const nextItem = inventory.pop()
+      nextCursor = nextItem?.id
+    }
+
+    return {
+      data: inventory.map(inv => ({
+        ...inv,
+        unitPrice: inv.unitPrice != null ? Number(inv.unitPrice) : null,
+        citationRef: `shopify:unified_inventory:${inv.sourceId}`,
+        isLowStock: inv.quantityAvailable < 50,
+        isCritical: inv.quantityAvailable < 10
+      })),
+      nextCursor
+    }
   })
 
   // Get dashboard summary

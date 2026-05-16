@@ -8,31 +8,24 @@ export function validateCitations(
   response: string,
   availableCitationRefs: string[]
 ): ValidationResult {
-  // Extract all numbers from response (currency, percentages, counts)
-  const numberPattern = /\\$[\\d,]+\\.?\\d*|[\\d,]+\\.?\\d+%|[\\d,]{2,}(?:\\.\\d+)?/g
+  // Extract all numbers from response (currency $X, percentages X%, bare counts 100+)
+  // IMPORTANT: Single-backslash escapes in regex LITERALS are correct here.
+  const numberPattern = /\$[\d,]+\.?\d*|[\d,]+\.?\d+%|[\d,]{2,}(?:\.\d+)?/g
   const numbers = response.match(numberPattern) || []
 
   if (numbers.length === 0) {
+    // No numeric claims — nothing to cite
     return { valid: true }
   }
 
-  // Check each number has an adjacent [Source: ...] citation within 200 chars
-  const citationPattern = /\\[Source:[^\\]]+\\]/g
+  // Check the response contains at least one [Source: ...] citation tag
+  const citationPattern = /\[Source:[^\]]+\]/g
   const citations = response.match(citationPattern) || []
 
-  if (numbers.length > 0 && citations.length === 0) {
-    return {
-      valid: false,
-      error: 'Response contains numbers but no citations',
-      uncitedNumbers: numbers
-    }
-  }
-
-  // Simple check: require at least 1 citation if there are numbers, instead of strict ratios which break on dates
   if (citations.length === 0) {
     return {
       valid: false,
-      error: `Insufficient citations: found ${numbers.length} numbers but 0 citations`,
+      error: `Response contains ${numbers.length} numeric value(s) but no [Source:...] citations`,
       uncitedNumbers: numbers
     }
   }

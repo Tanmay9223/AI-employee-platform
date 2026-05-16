@@ -1,5 +1,5 @@
 # Phase 2 — AI Chat Layer
-## Gemini 3 Flash + Tool Calls + Citation Enforcement
+## Gemini 3.1 flash + Tool Calls + Citation Enforcement
 
 > Phase 1 must be complete before starting this.
 > Goal: AI chat that answers business questions with citations. No hallucinated numbers.
@@ -11,11 +11,11 @@
 ```
 User Message
     ↓
-[Gemini 3 Flash] — classify intent, summarize context
+[Gemini 3.1 flash] — classify intent, summarize context
     ↓
 [Tool Executor] — runs SQL queries against unified tables
     ↓
-[Gemini 3 Flash] — generates final answer with citations
+[Gemini 3.1 flash] — generates final answer with citations
     ↓
 [Citation Validator] — blocks any uncited numbers
     ↓
@@ -32,7 +32,7 @@ Create `packages/api/src/lib/llm-provider.ts`:
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const geminiClient = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!)
-const geminiModel = geminiClient.getGenerativeModel({ model: 'gemini-3-flash' })
+const geminiModel = geminiClient.getGenerativeModel({ model: 'gemini-3.1-flash-lite' })
 
 async function callGemini(prompt: string): Promise<string> {
   try {
@@ -542,7 +542,7 @@ export async function chatRoutes(fastify: FastifyInstance) {
         metadata: {
           toolsUsed: result.toolsUsed,
           citationsCount: result.citationsUsed.length,
-          model: 'gemini-3-flash',
+          model: 'gemini-3.1-flash-lite',
           timestamp: new Date().toISOString()
         }
       }
@@ -600,7 +600,7 @@ Expected response:
   "metadata": {
     "toolsUsed": ["query_revenue"],
     "citationsCount": 2,
-    "model": "gemini-3-flash"
+    "model": "gemini-3.1-flash-lite"
   }
 }
 ```

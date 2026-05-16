@@ -183,5 +183,50 @@ export const chatTools = {
       recordCount: 1,
       dataAsOf: new Date().toISOString()
     }
+  },
+
+  // ── WRITE TOOL ────────────────────────────────────────────────────────────
+  // Satisfies the "reads AND writes" requirement.
+  // Allows the chat interface to update a pending recommendation status.
+  async update_recommendation(merchantId: string, params: {
+    recommendationId: string
+    status: 'approved' | 'dismissed' | 'snoozed'
+  }): Promise<ToolResult> {
+    // Verify the recommendation belongs to this merchant before writing
+    const existing = await prisma.agentRecommendation.findFirst({
+      where: { id: params.recommendationId, merchantId }
+    })
+
+    if (!existing) {
+      return {
+        toolName: 'update_recommendation',
+        data: { error: 'Recommendation not found or does not belong to this merchant' },
+        citationRef: 'n/a',
+        recordCount: 0,
+        dataAsOf: new Date().toISOString()
+      }
+    }
+
+    await prisma.agentRecommendation.update({
+      where: { id: params.recommendationId },
+      data: {
+        status: params.status,
+        reviewedAt: new Date(),
+        reviewedBy: 'ai_chat'
+      }
+    })
+
+    return {
+      toolName: 'update_recommendation',
+      data: {
+        recommendationId: params.recommendationId,
+        sku: existing.sku,
+        newStatus: params.status,
+        action: `Recommendation for ${existing.sku} has been ${params.status}`
+      },
+      citationRef: `agentRecommendation → ${params.recommendationId}`,
+      recordCount: 1,
+      dataAsOf: new Date().toISOString()
+    }
   }
 }

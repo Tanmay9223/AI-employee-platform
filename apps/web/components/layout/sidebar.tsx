@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Plug, MessageSquare, BellRing, Table2, Zap } from 'lucide-react'
+import { LayoutDashboard, Plug, MessageSquare, BellRing, Table2, Zap, ShoppingCart, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/components/providers/session-provider'
 
@@ -10,7 +10,9 @@ const navItems = [
   { href: '/connectors',        label: 'Connectors',      icon: Plug },
   { href: '/chat',              label: 'AI Chat',         icon: MessageSquare },
   { href: '/recommendations',   label: 'Recommendations', icon: BellRing },
-  { href: '/data',              label: 'Data Explorer',   icon: Table2 },
+  { href: '/orders',            label: 'Orders',          icon: ShoppingCart },
+  { href: '/inventory',         label: 'Inventory',       icon: Table2 },
+  { href: '/campaigns',         label: 'Campaigns',       icon: Megaphone },
 ]
 
 export function Sidebar() {

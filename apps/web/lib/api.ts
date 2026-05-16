@@ -16,11 +16,26 @@ export const api = {
   getRevenue: (merchantId: string, from?: string, to?: string) =>
     apiFetch(`/api/data/revenue/${merchantId}?${from ? `from=${from}&` : ''}${to ? `to=${to}` : ''}`),
 
-  getCampaigns: (merchantId: string) =>
-    apiFetch(`/api/data/campaigns/${merchantId}`),
+  getCampaigns: (merchantId: string, cursor?: string, limit?: number) =>
+    apiFetch(`/api/data/campaigns/${merchantId}?${cursor ? `cursor=${cursor}&` : ''}${limit ? `limit=${limit}` : ''}`),
 
-  getInventory: (merchantId: string) =>
-    apiFetch(`/api/data/inventory/${merchantId}`),
+  getInventory: (merchantId: string, cursor?: string, limit?: number) =>
+    apiFetch(`/api/data/inventory/${merchantId}?${cursor ? `cursor=${cursor}&` : ''}${limit ? `limit=${limit}` : ''}`),
+
+  getOrders: (merchantId: string, cursor?: string, limit?: number) =>
+    apiFetch(`/api/data/orders/${merchantId}?${cursor ? `cursor=${cursor}&` : ''}${limit ? `limit=${limit}` : ''}`),
+
+  toggleShopifyWebhooks: (enabled: boolean) =>
+    apiFetch('/api/connectors/shopify/webhooks', {
+      method: 'POST',
+      body: JSON.stringify({ enabled })
+    }),
+
+  syncHistoricalData: (startDate: string, endDate: string) =>
+    apiFetch('/api/connectors/shopify/sync-historical', {
+      method: 'POST',
+      body: JSON.stringify({ startDate, endDate })
+    }),
 
   sendMessage: (merchantId: string, message: string, history: { role: string; content: string }[]) =>
     apiFetch('/api/chat/message', {

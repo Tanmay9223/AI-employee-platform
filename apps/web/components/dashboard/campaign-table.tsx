@@ -25,7 +25,7 @@ export function CampaignTable({ merchantId }: { merchantId: string }) {
             </tr>
           </thead>
           <tbody>
-            {(campaigns || []).map((c: { id: string; name: string; sourceConnector: string; spendAmount: number; conversionValue: number; revenueAttributed: number; roas: number; status: string }) => (
+            {((campaigns as any)?.data || []).map((c: { id: string; name: string; sourceConnector: string; spendAmount: number; conversionValue: number; revenueAttributed: number; roas: number; status: string }) => (
               <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                 <td className="px-5 py-3 font-medium text-slate-900">{c.name}</td>
                 <td className="px-5 py-3">

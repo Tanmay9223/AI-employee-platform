@@ -1,9 +1,10 @@
-fastapi
-uvicorn
-langgraph
-langchain-google-genai
-langchain-core
-python-dotenv
-pydantic
-httpx
-apscheduler
+fastapi==0.115.5
+uvicorn==0.32.1
+langgraph==0.2.53
+# google-generativeai is the correct pip package name.
+# The import in code is: import google.generativeai as genai
+google-generativeai==0.8.3
+python-dotenv==1.0.1
+pydantic==2.10.3
+httpx==0.28.1
+apscheduler==3.10.4

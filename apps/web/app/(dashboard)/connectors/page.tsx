@@ -4,6 +4,7 @@ import { CheckCircle, Clock, AlertCircle, Plug, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import { api } from '@/lib/api'
 
 const CONNECTOR_TEMPLATES = [
   {
@@ -42,6 +43,11 @@ const statusConfig = {
 export default function ConnectorsPage() {
   const router = useRouter()
   const [syncing, setSyncing] = useState<string | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)
+  const [webhookEnabled, setWebhookEnabled] = useState(false)
+  const [histSyncStart, setHistSyncStart] = useState('')
+  const [histSyncEnd, setHistSyncEnd] = useState('')
+  const [histSyncing, setHistSyncing] = useState(false)
 
   const { data: activeConnectors, isLoading } = useQuery({
     queryKey: ['connectors'],
@@ -60,6 +66,20 @@ export default function ConnectorsPage() {
   const handleSync = (id: string) => {
     setSyncing(id)
     setTimeout(() => setSyncing(null), 2000)
+  }
+
+  const toggleWebhook = async () => {
+    const newState = !webhookEnabled
+    setWebhookEnabled(newState)
+    await api.toggleShopifyWebhooks(newState)
+  }
+
+  const handleHistoricalSync = async () => {
+    if (!histSyncStart || !histSyncEnd) return
+    setHistSyncing(true)
+    await api.syncHistoricalData(histSyncStart, histSyncEnd)
+    setHistSyncing(false)
+    alert('Historical sync initiated! Data is being chunked and downloaded in the background.')
   }
 
   const handleConnect = (id: string) => {
@@ -120,13 +140,24 @@ export default function ConnectorsPage() {
               <div className="flex flex-col items-end gap-2 flex-shrink-0">
                 {isConnected ? (
                   <>
-                    <button
-                      onClick={() => handleSync(template.id)}
-                      disabled={syncing === template.id}
-                      className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors"
-                    >
-                      {syncing === template.id ? 'Syncing...' : 'Sync Now'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setEditing(editing === template.id ? null : template.id)
+                          if (state.config?.webhooksEnabled) setWebhookEnabled(true)
+                        }}
+                        className="px-3 py-1.5 bg-slate-100 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-200 transition-colors"
+                      >
+                        {editing === template.id ? 'Close' : 'Edit'}
+                      </button>
+                      <button
+                        onClick={() => handleSync(template.id)}
+                        disabled={syncing === template.id}
+                        className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                      >
+                        {syncing === template.id ? 'Syncing...' : 'Sync Now'}
+                      </button>
+                    </div>
                     <p className="text-xs text-slate-400 font-medium">Last sync: {state.lastSyncedAt ? new Date(state.lastSyncedAt).toLocaleString() : 'Just now'}</p>
                   </>
                 ) : (
@@ -140,6 +171,77 @@ export default function ConnectorsPage() {
                 )}
               </div>
             </div>
+
+            {/* Edit / Configuration Pane */}
+            {isConnected && editing === template.id && template.id === 'shopify' && (
+              <div className="mt-5 pt-5 border-t border-slate-100 flex flex-col gap-6 animate-in slide-in-from-top-2">
+                
+                <div className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <div>
+                    <h4 className="font-semibold text-slate-900 text-sm">Live Order Sync (Webhooks)</h4>
+                    <p className="text-xs text-slate-500 mt-1 max-w-md">Automatically sync new orders via Shopify webhooks instead of hourly polling. This improves performance and provides real-time AI context.</p>
+                  </div>
+                  <button 
+                    onClick={toggleWebhook}
+                    className={cn('w-12 h-6 rounded-full transition-colors relative', webhookEnabled ? 'bg-indigo-600' : 'bg-slate-300')}
+                  >
+                    <span className={cn('absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform', webhookEnabled ? 'translate-x-6' : 'translate-x-0')} />
+                  </button>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <h4 className="font-semibold text-slate-900 text-sm mb-1">Migrate Historical Data</h4>
+                  <p className="text-xs text-slate-500 mb-4 max-w-md">
+                    First-time syncs only fetch the last 7 days to preserve memory. Use this tool to migrate older data. The system will automatically chunk large queries to prevent out-of-memory errors.
+                  </p>
+                  
+                  <div className="flex items-end gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-slate-600 uppercase">Start Date</label>
+                      <input 
+                        type="date" 
+                        value={histSyncStart}
+                        onChange={e => setHistSyncStart(e.target.value)}
+                        className="text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-slate-600 uppercase">End Date</label>
+                      <input 
+                        type="date" 
+                        value={histSyncEnd}
+                        onChange={e => setHistSyncEnd(e.target.value)}
+                        className="text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <button 
+                      onClick={handleHistoricalSync}
+                      disabled={histSyncing || !histSyncStart || !histSyncEnd}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    >
+                      {histSyncing ? 'Syncing chunks...' : 'Start Migration'}
+                    </button>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button onClick={() => {
+                      const end = new Date()
+                      const start = new Date()
+                      start.setMonth(start.getMonth() - 1)
+                      setHistSyncEnd(end.toISOString().split('T')[0])
+                      setHistSyncStart(start.toISOString().split('T')[0])
+                    }} className="text-[10px] bg-white border border-slate-200 px-2 py-1 rounded text-slate-600 hover:bg-slate-50 font-semibold uppercase tracking-tight">Previous Month</button>
+                    <button onClick={() => {
+                      const end = new Date()
+                      const start = new Date()
+                      start.setFullYear(start.getFullYear() - 1)
+                      setHistSyncEnd(end.toISOString().split('T')[0])
+                      setHistSyncStart(start.toISOString().split('T')[0])
+                    }} className="text-[10px] bg-white border border-slate-200 px-2 py-1 rounded text-slate-600 hover:bg-slate-50 font-semibold uppercase tracking-tight">Previous Year</button>
+                  </div>
+                </div>
+
+              </div>
+            )}
           </div>
         )
       })}

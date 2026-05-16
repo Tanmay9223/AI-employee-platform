@@ -10,7 +10,8 @@ export function InventoryWidget({ merchantId }: { merchantId: string }) {
     queryFn: () => api.getInventory(merchantId),
   })
 
-  const lowStock = (inventory || []).filter((i: { isLowStock: boolean }) => i.isLowStock)
+  const inventoryItems = (inventory as any)?.data || []
+  const lowStock = inventoryItems.filter((i: { isLowStock: boolean }) => i.isLowStock)
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5 h-full">

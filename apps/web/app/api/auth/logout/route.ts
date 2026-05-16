@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { destroySession } from '@/lib/session'
+import { deleteSession } from '@/lib/session'
 
 export async function POST() {
-  await destroySession()
+  await deleteSession()
   return NextResponse.json({ success: true, redirect: '/login' })
 }

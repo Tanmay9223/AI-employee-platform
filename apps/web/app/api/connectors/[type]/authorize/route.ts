@@ -21,8 +21,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ type: s
       return NextResponse.json({ error: 'Connector already authorized' }, { status: 400 })
     }
 
-    // Seed data
-    await seedConnectorData(session.merchantId, type)
+    // Seed data with 7 days initial constraint
+    await seedConnectorData(session.merchantId, type, { historicalDays: 7 })
 
     // Create connector instance
     await db.connectorInstance.create({
