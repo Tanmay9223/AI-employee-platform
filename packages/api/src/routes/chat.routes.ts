@@ -49,7 +49,6 @@ export async function chatRoutes(fastify: FastifyInstance) {
     const words = result.response.split(' ')
     for (const word of words) {
       reply.raw.write(`data: ${JSON.stringify({ token: word + ' ' })}\n\n`)
-      await new Promise(resolve => setTimeout(resolve, 30))
     }
 
     reply.raw.write(`data: ${JSON.stringify({ done: true, metadata: { toolsUsed: result.toolsUsed } })}\n\n`)
