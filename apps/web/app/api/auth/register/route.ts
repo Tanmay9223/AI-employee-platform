@@ -4,10 +4,14 @@ import { createSession } from '@/lib/session'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { hashPassword } from '@/lib/auth-utils'
 
-const SHARED_REGISTRATION_CODE = process.env.REGISTRATION_CODE || 'admin'
+const SHARED_REGISTRATION_CODE = process.env.REGISTRATION_CODE
 
 export async function POST(req: Request) {
   try {
+    if (!SHARED_REGISTRATION_CODE) {
+      console.error('REGISTRATION_CODE environment variable is not set')
+      return NextResponse.json({ error: 'Registration is currently unavailable' }, { status: 503 })
+    }
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1'
     const rateLimit = await checkRateLimit(`register_${ip}`, 5, 60000)
     
