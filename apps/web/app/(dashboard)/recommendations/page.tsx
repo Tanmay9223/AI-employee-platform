@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useSession } from '@/components/providers/session-provider'
-import { CheckCircle, XCircle, Clock, Play, BookOpen } from 'lucide-react'
+import { CheckCircle, Clock, Play, BookOpen } from 'lucide-react'
 import { formatCurrency, getRiskColor, cn } from '@/lib/utils'
 
 export default function RecommendationsPage() {
