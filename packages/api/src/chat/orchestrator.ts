@@ -10,9 +10,7 @@ export async function handleChatMessage(
 ): Promise<{ response: string; citationsUsed: string[]; toolsUsed: string[] }> {
 
   // Step 1: Classify intent (Gemini)
-  console.log('[Chat] Classifying intent...')
   const intent = await classifyIntent(userMessage)
-  console.log('[Chat] Intent:', intent)
 
   // Step 2: Execute tools based on intent
   const toolResults = []
