@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify } from 'jose'
+import { SignJWT, jwtVerify, JWTPayload } from 'jose'
 import { cookies } from 'next/headers'
 
 if (!process.env.JWT_SECRET) {
@@ -8,7 +8,14 @@ if (!process.env.JWT_SECRET) {
 const secretKey = process.env.JWT_SECRET
 const key = new TextEncoder().encode(secretKey)
 
-export async function encrypt(payload: any) {
+export interface SessionPayload extends JWTPayload {
+  userId: string
+  merchantId: string
+  merchantName?: string
+  expiresAt?: Date | string | number
+}
+
+export async function encrypt(payload: SessionPayload) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -16,12 +23,12 @@ export async function encrypt(payload: any) {
     .sign(key)
 }
 
-export async function decrypt(input: string): Promise<any> {
+export async function decrypt(input: string): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(input, key, {
       algorithms: ['HS256'],
     })
-    return payload
+    return payload as SessionPayload
   } catch (error) {
     console.error('Session decryption failed:', error)
     return null
