@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '../lib/prisma'
+import { Prisma } from '@prisma/client'
 
 /**
  * Internal routes are called by the Python agent service, NOT the public internet.
@@ -135,8 +136,8 @@ export async function internalRoutes(fastify: FastifyInstance) {
   })
 
   // Save recommendations from agent
-  fastify.post('/recommendations', async (req, reply) => {
-    const data = req.body as any
+  fastify.post<{ Body: Prisma.AgentRecommendationUncheckedCreateInput }>('/recommendations', async (req, reply) => {
+    const data = req.body
     // Validate required fields before writing
     if (!data.merchantId || !data.id) {
       return reply.status(400).send({ error: 'Missing required fields: id, merchantId' })
@@ -146,8 +147,13 @@ export async function internalRoutes(fastify: FastifyInstance) {
   })
 
   // Save agent run logs
-  fastify.post('/logs', async (req, reply) => {
-    const data = req.body as any
+  fastify.post<{
+    Body: Omit<Prisma.AgentRunLogUncheckedCreateInput, 'startedAt' | 'completedAt'> & {
+      startedAt: string | Date
+      completedAt?: string | Date | null
+    }
+  }>('/logs', async (req, reply) => {
+    const data = req.body
     if (!data.id || !data.merchantId) {
       return reply.status(400).send({ error: 'Missing required fields: id, merchantId' })
     }
