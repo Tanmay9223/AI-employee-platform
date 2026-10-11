@@ -7,6 +7,8 @@
  * Falls back to in-memory if Redis is unavailable (allows local dev without Redis).
  */
 
+import type { RedisClientType } from 'redis'
+
 type RateLimitEntry = {
   count: number
   resetAt: number
@@ -15,9 +17,9 @@ type RateLimitEntry = {
 // In-memory fallback (used when Redis is not available)
 const memoryStore = new Map<string, RateLimitEntry>()
 
-let redisClient: any = null
+let redisClient: RedisClientType | null = null
 
-async function getRedis() {
+async function getRedis(): Promise<RedisClientType | null> {
   if (redisClient) return redisClient
 
   const REDIS_URL = process.env.REDIS_URL
@@ -27,10 +29,10 @@ async function getRedis() {
     // Dynamically import to avoid breaking when Redis is not installed
     const { createClient } = await import('redis')
     const client = createClient({ url: REDIS_URL })
-    client.on('error', (err: any) => console.warn('[RateLimit] Redis error (falling back to memory):', err.message))
+    client.on('error', (err: Error) => console.warn('[RateLimit] Redis error (falling back to memory):', err.message))
     await client.connect()
-    redisClient = client
-    return client
+    redisClient = client as unknown as RedisClientType
+    return client as unknown as RedisClientType
   } catch {
     return null
   }
@@ -56,8 +58,9 @@ export async function checkRateLimit(
         await redis.expire(key, windowSec)
       }
       return { success: count <= limit }
-    } catch (err: any) {
-      console.warn('[RateLimit] Redis op failed, using memory fallback:', err.message)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.warn('[RateLimit] Redis op failed, using memory fallback:', msg)
     }
   }
 
