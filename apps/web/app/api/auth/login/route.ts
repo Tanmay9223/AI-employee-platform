@@ -3,11 +3,17 @@ import { db } from '@/lib/db'
 import { createSession } from '@/lib/session'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { verifyPassword } from '@/lib/auth-utils'
+import { getClientIp } from '@/lib/get-client-ip'
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || '127.0.0.1'
-    const rateLimit = await checkRateLimit(`login_${ip}`, 10, 60000)
+    const ip = await getClientIp()
+
+    // Fallback bucket for unknown IPs with a much stricter limit
+    const ipBucket = ip ? `login_ip_${ip}` : 'login_ip_unknown'
+    const ipLimit = ip ? 10 : 3
+
+    const rateLimit = await checkRateLimit(ipBucket, ipLimit, 60000)
     
     if (!rateLimit.success) {
       return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 })
@@ -20,6 +26,12 @@ export async function POST(req: Request) {
     }
 
     const email = rawEmail.toLowerCase().trim()
+
+    // Add per-account limiter
+    const accountRateLimit = await checkRateLimit(`login_acc_${email}`, 10, 60000)
+    if (!accountRateLimit.success) {
+      return NextResponse.json({ error: 'Too many attempts for this account. Please try again later.' }, { status: 429 })
+    }
 
     const user = await db.user.findUnique({
       where: { email },
