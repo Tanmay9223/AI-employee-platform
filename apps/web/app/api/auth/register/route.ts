@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     await createSession(result.user.id, result.merchant.id, companyName)
 
     return NextResponse.json({ success: true, redirect: '/connectors' })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Registration error:', error)
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }

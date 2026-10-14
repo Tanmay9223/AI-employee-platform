@@ -26,11 +26,11 @@ export async function chatRoutes(fastify: FastifyInstance) {
           timestamp: new Date().toISOString()
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[Chat] Error:', error)
       return reply.status(500).send({
         error: 'Chat processing failed',
-        details: error.message
+        details: error instanceof Error ? error.message : String(error)
       })
     }
   })
