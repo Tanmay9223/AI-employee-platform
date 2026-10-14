@@ -71,14 +71,14 @@ export const chatTools = {
       orderBy: { roas: 'desc' }
     })
 
-    const totalSpend = campaigns.reduce((sum: number, c: any) => sum + Number(c.spendAmount || 0), 0)
-    const totalRevenue = campaigns.reduce((sum: number, c: any) => sum + Number(c.conversionValue || c.revenueAttributed || 0), 0)
+    const totalSpend = campaigns.reduce((sum: number, c) => sum + Number(c.spendAmount || 0), 0)
+    const totalRevenue = campaigns.reduce((sum: number, c) => sum + Number(c.conversionValue || c.revenueAttributed || 0), 0)
     const blendedRoas = totalSpend > 0 ? totalRevenue / totalSpend : 0
 
     return {
       toolName: 'query_campaigns',
       data: {
-        campaigns: campaigns.map((c: any) => ({
+        campaigns: campaigns.map((c) => ({
           name: c.name,
           connector: c.sourceConnector,
           spend: Number(c.spendAmount || 0).toFixed(2),
@@ -153,7 +153,7 @@ export const chatTools = {
     if (params.metric === 'cac') {
       const campaigns = await prisma.unifiedCampaign.findMany({ where: { merchantId } })
       const orders = await prisma.unifiedOrder.aggregate({ where, _count: { id: true } })
-      const totalSpend = campaigns.reduce((s: number, c: any) => s + Number(c.spendAmount || 0), 0)
+      const totalSpend = campaigns.reduce((s: number, c) => s + Number(c.spendAmount || 0), 0)
       const cac = orders._count.id > 0 ? totalSpend / orders._count.id : 0
       result = { cac: cac.toFixed(2), totalSpend: totalSpend.toFixed(2), totalOrders: orders._count.id }
       citationRef = 'meta_ads → unified_campaigns + shopify → unified_orders'
@@ -161,8 +161,8 @@ export const chatTools = {
 
     if (params.metric === 'blended_roas') {
       const campaigns = await prisma.unifiedCampaign.findMany({ where: { merchantId } })
-      const totalSpend = campaigns.reduce((s: number, c: any) => s + Number(c.spendAmount || 0), 0)
-      const totalRevenue = campaigns.reduce((s: number, c: any) => s + Number(c.conversionValue || c.revenueAttributed || 0), 0)
+      const totalSpend = campaigns.reduce((s: number, c) => s + Number(c.spendAmount || 0), 0)
+      const totalRevenue = campaigns.reduce((s: number, c) => s + Number(c.conversionValue || c.revenueAttributed || 0), 0)
       const roas = totalSpend > 0 ? totalRevenue / totalSpend : 0
       result = { blendedRoas: roas.toFixed(2), totalSpend: totalSpend.toFixed(2), totalRevenue: totalRevenue.toFixed(2) }
       citationRef = 'meta_ads + klaviyo → unified_campaigns'
