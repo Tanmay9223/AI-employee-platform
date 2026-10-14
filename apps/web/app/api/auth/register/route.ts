@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { createSession } from '@/lib/session'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { hashPassword } from '@/lib/auth-utils'
+import { getClientIp } from '@/lib/get-client-ip'
 
 const SHARED_REGISTRATION_CODE = process.env.REGISTRATION_CODE
 
@@ -12,8 +13,13 @@ export async function POST(req: Request) {
       console.error('REGISTRATION_CODE environment variable is not set')
       return NextResponse.json({ error: 'Registration is currently unavailable' }, { status: 503 })
     }
-    const ip = req.headers.get('x-forwarded-for') || '127.0.0.1'
-    const rateLimit = await checkRateLimit(`register_${ip}`, 5, 60000)
+    const ip = await getClientIp()
+
+    // Fallback bucket for unknown IPs with a much stricter limit
+    const ipBucket = ip ? `register_ip_${ip}` : 'register_ip_unknown'
+    const ipLimit = ip ? 5 : 2
+
+    const rateLimit = await checkRateLimit(ipBucket, ipLimit, 60000)
     
     if (!rateLimit.success) {
       return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 })
@@ -26,6 +32,12 @@ export async function POST(req: Request) {
     }
 
     const email = rawEmail.toLowerCase().trim()
+
+    // Add per-account limiter for registration
+    const accountRateLimit = await checkRateLimit(`register_acc_${email}`, 5, 60000)
+    if (!accountRateLimit.success) {
+      return NextResponse.json({ error: 'Too many attempts for this email. Please try again later.' }, { status: 429 })
+    }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
