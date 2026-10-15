@@ -7,7 +7,7 @@ from langgraph.graph import StateGraph, END
 # pyrefly: ignore [missing-import]
 import google.generativeai as genai
 from signals import load_signals_data
-from api_client import save_recommendation, save_run_log
+from api_client import save_recommendation, save_recommendations_concurrent, save_run_log
 import json
 
 # Use the google-generativeai package (not google.genai)
@@ -216,8 +216,9 @@ Write exactly 2 sentences: (1) explain the risk clearly using the numbers above,
 def save_results(state: AgentState) -> AgentState:
     print(f"[Agent] Saving {len(state['recommendations'])} recommendations...")
 
+    data_list = []
     for rec in state['recommendations']:
-        save_recommendation({
+        data_list.append({
             "id": str(uuid.uuid4()),
             "merchantId": state['merchant_id'],
             "agentRunId": state['run_id'],
@@ -233,6 +234,9 @@ def save_results(state: AgentState) -> AgentState:
             "citations": rec['citations'],
             "status": "pending"
         })
+
+    if data_list:
+        save_recommendations_concurrent(data_list)
 
     completed_at = datetime.now()
     save_run_log({
