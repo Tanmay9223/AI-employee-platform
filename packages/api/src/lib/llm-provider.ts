@@ -12,8 +12,8 @@ async function callGemini(prompt: string): Promise<string> {
   try {
     const result = await geminiModel.generateContent(prompt)
     return result.response.text()
-  } catch (error: any) {
-    console.error('[LLM] Gemini call failed:', error.message)
+  } catch (error: unknown) {
+    console.error('[LLM] Gemini call failed:', error instanceof Error ? error.message : String(error))
     throw error
   }
 }
