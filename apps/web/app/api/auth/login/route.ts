@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     await createSession(user.id, user.merchantId, user.merchant.name)
 
     return NextResponse.json({ success: true, redirect: '/dashboard' })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Login error:', error)
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }

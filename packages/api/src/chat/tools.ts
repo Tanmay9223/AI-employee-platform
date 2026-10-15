@@ -150,8 +150,12 @@ export const chatTools = {
     let result: any = {}
     let citationRef = ''
 
+    let campaigns: any[] = []
+    if (params.metric === 'cac' || params.metric === 'blended_roas') {
+      campaigns = await prisma.unifiedCampaign.findMany({ where: { merchantId } })
+    }
+
     if (params.metric === 'cac') {
-      const campaigns = await prisma.unifiedCampaign.findMany({ where: { merchantId } })
       const orders = await prisma.unifiedOrder.aggregate({ where, _count: { id: true } })
       const totalSpend = campaigns.reduce((s: number, c) => s + Number(c.spendAmount || 0), 0)
       const cac = orders._count.id > 0 ? totalSpend / orders._count.id : 0
@@ -160,7 +164,6 @@ export const chatTools = {
     }
 
     if (params.metric === 'blended_roas') {
-      const campaigns = await prisma.unifiedCampaign.findMany({ where: { merchantId } })
       const totalSpend = campaigns.reduce((s: number, c) => s + Number(c.spendAmount || 0), 0)
       const totalRevenue = campaigns.reduce((s: number, c) => s + Number(c.conversionValue || c.revenueAttributed || 0), 0)
       const roas = totalSpend > 0 ? totalRevenue / totalSpend : 0
