@@ -166,12 +166,12 @@ function buildFallbackResponse(toolResults: any[]): string {
   const data = toolResults[0].data
   const citation = toolResults[0].citationRef
 
-  let friendlyText = `Here's a summary of the data I found:\n\n`
+  const lines: string[] = [`Here's a summary of the data I found:\n`]
   for (const [key, value] of Object.entries(data)) {
     if (typeof value === 'object') continue
     const friendlyKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
-    friendlyText += `- **${friendlyKey}**: ${value} [Source: ${citation}]\n`
+    lines.push(`- **${friendlyKey}**: ${value} [Source: ${citation}]`)
   }
 
-  return friendlyText
+  return lines.join('\n') + '\n'
 }

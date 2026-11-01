@@ -164,8 +164,8 @@ export const chatTools = {
     }
 
     if (params.metric === 'blended_roas') {
-      const totalSpend = campaigns.reduce((s: number, c) => s + Number(c.spendAmount || 0), 0)
-      const totalRevenue = campaigns.reduce((s: number, c) => s + Number(c.conversionValue || c.revenueAttributed || 0), 0)
+      const totalSpend = campaigns.reduce((s: number, c: any) => s + Number(c.spendAmount || 0), 0)
+      const totalRevenue = campaigns.reduce((s: number, c: any) => s + Number(c.conversionValue || c.revenueAttributed || 0), 0)
       const roas = totalSpend > 0 ? totalRevenue / totalSpend : 0
       result = { blendedRoas: roas.toFixed(2), totalSpend: totalSpend.toFixed(2), totalRevenue: totalRevenue.toFixed(2) }
       citationRef = 'meta_ads + klaviyo → unified_campaigns'
