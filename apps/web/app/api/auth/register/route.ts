@@ -4,13 +4,14 @@ import { createSession } from '@/lib/session'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { hashPassword } from '@/lib/auth-utils'
 import { getClientIp } from '@/lib/get-client-ip'
+import { logger } from '@/lib/logger'
 
 const SHARED_REGISTRATION_CODE = process.env.REGISTRATION_CODE
 
 export async function POST(req: Request) {
   try {
     if (!SHARED_REGISTRATION_CODE) {
-      console.error('REGISTRATION_CODE environment variable is not set')
+      logger.error('REGISTRATION_CODE environment variable is not set')
       return NextResponse.json({ error: 'Registration is currently unavailable' }, { status: 503 })
     }
     const ip = await getClientIp()
@@ -92,7 +93,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, redirect: '/connectors' })
   } catch (error: unknown) {
-    console.error('Registration error:', error)
+    logger.error('Registration error:', error)
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }
 }

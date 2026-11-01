@@ -1,20 +1,14 @@
 export const logger = {
-  info: (message: string, meta?: Record<string, unknown>) => {
-    console.info(JSON.stringify({ level: 'info', message, timestamp: new Date().toISOString(), ...meta }))
+  info: (message: string, context?: unknown) => {
+    console.log(JSON.stringify({ level: 'info', timestamp: new Date().toISOString(), message, context }));
   },
-  warn: (message: string, meta?: Record<string, unknown>) => {
-    console.warn(JSON.stringify({ level: 'warn', message, timestamp: new Date().toISOString(), ...meta }))
+  warn: (message: string, context?: unknown) => {
+    console.warn(JSON.stringify({ level: 'warn', timestamp: new Date().toISOString(), message, context }));
   },
-  error: (message: string, error?: unknown, meta?: Record<string, unknown>) => {
-    console.error(JSON.stringify({
-      level: 'error',
-      message,
-      timestamp: new Date().toISOString(),
-      error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
-      ...meta
-    }))
-  },
-  debug: (message: string, meta?: Record<string, unknown>) => {
-    console.debug(JSON.stringify({ level: 'debug', message, timestamp: new Date().toISOString(), ...meta }))
+  error: (message: string, error?: unknown) => {
+    const errorDetails = error instanceof Error
+      ? { message: error.message, stack: error.stack }
+      : error;
+    console.error(JSON.stringify({ level: 'error', timestamp: new Date().toISOString(), message, error: errorDetails }));
   }
-}
+};
