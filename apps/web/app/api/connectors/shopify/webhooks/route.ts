@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/session'
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, webhooksEnabled: enabled })
   } catch (error) {
-    console.error('Failed to toggle webhooks:', error)
+    logger.error('Failed to toggle webhooks:', error)
     return NextResponse.json({ error: 'Failed to update webhook settings' }, { status: 500 })
   }
 }
