@@ -5,6 +5,7 @@ import { api } from '@/lib/api'
 import { useSession } from '@/components/providers/session-provider'
 import { CheckCircle, Clock, Play, BookOpen } from 'lucide-react'
 import { formatCurrency, getRiskColor, cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 export default function RecommendationsPage() {
   const session = useSession()
@@ -33,7 +34,7 @@ export default function RecommendationsPage() {
       await api.runAgent(merchantId)
       queryClient.invalidateQueries({ queryKey: ['recommendations'] })
     } catch (err) {
-      console.error('Run agent failed', err)
+      logger.error('Run agent failed', err)
     } finally {
       setAgentRunning(false)
     }
