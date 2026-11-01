@@ -60,6 +60,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.0
+      '@testing-library/dom':
+        specifier: ^10.4.2
+        version: 10.4.2
       '@testing-library/jest-dom':
         specifier: ^7.0.1
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@4.1.7(@types/node@20.19.41)(jsdom@26.1.0)(vite@8.0.14(@types/node@20.19.41)(jiti@2.7.0)))
