@@ -17,12 +17,7 @@ const server = Fastify({ logger: true })
 // Setup plugin registration
 async function build() {
   await server.register(cors, {
-    origin: [
-      'https://ai-employee-web.onrender.com',
-      'http://localhost:3000',
-      // Allow any additional origins via env var (comma-separated)
-      ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [])
-    ],
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-internal-secret'],
     credentials: true,
